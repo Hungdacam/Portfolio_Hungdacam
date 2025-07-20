@@ -1,62 +1,39 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 export default function StarsBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [stars, setStars] = useState<{ left: string; top: string; size: number; delay: number }[]>([]);
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext("2d")!
-    let stars: { x: number; y: number; radius: number; vx: number; vy: number }[] = []
-    
-    const resize = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      stars = Array.from({ length: 100 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: Math.random() * 1.5,
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2
-      }))
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = "white"
-      stars.forEach((star) => {
-        star.x += star.vx
-        star.y += star.vy
-
-        if (star.x < 0) star.x = canvas.width
-        if (star.x > canvas.width) star.x = 0
-        if (star.y < 0) star.y = canvas.height
-        if (star.y > canvas.height) star.y = 0
-
-        ctx.beginPath()
-        ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2)
-        ctx.fill()
-      })
-    }
-
-    const animate = () => {
-      draw()
-      requestAnimationFrame(animate)
-    }
-
-    resize()
-    animate()
-    window.addEventListener("resize", resize)
-    return () => window.removeEventListener("resize", resize)
-  }, [])
+    // Create random positions, sizes, and delays for stars
+    const newStars = Array.from({ length: 50 }, () => ({
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 100}vh`,
+      size: Math.random() * 3 + 2, // Size range from 2 to 5 for more visible stars
+      delay: Math.random() * 3, // Random delay from 0 to 3 seconds
+    }));
+    setStars(newStars);
+  }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      id="stars"
-      className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none opacity-0 animate-fade-in"
-    />
-  )
+    <div className="fixed top-0 left-0 w-full h-full z-0 pointer-events-none overflow-hidden bg-black">
+      {stars.map((star, index) => (
+        <motion.span
+          key={index}
+          className="absolute bg-white rounded-full star"
+          style={{
+            left: star.left,
+            top: star.top,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            boxShadow: "0 0 8px 2px rgba(255, 255, 255, 0.6)", // Glow effect
+          }}
+          initial={{ opacity: 0.3, scale: 1 }}
+          transition={{ delay: star.delay }}
+        />
+      ))}
+    </div>
+  );
 }
